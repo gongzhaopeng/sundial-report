@@ -4,7 +4,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.UserInfoRestTemplateFactory;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerInterceptor;
+import org.springframework.cloud.client.loadbalancer.LoadBalancerRequestFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -47,7 +49,8 @@ public class RestTemplateConfiguration {
     public OAuth2RestTemplate indOauth2RestTemplate(
             ResourceServerProperties resourceServerProperties,
             OAuth2ProtectedResourceDetails oAuth2ProtectedResourceDetails,
-            LoadBalancerInterceptor loadBalancerInterceptor) {
+            LoadBalancerClient loadBalancerClient,
+            LoadBalancerRequestFactory requestFactory) {
 
         final var resourceDetails =
                 new ClientCredentialsResourceDetails();
@@ -59,6 +62,9 @@ public class RestTemplateConfiguration {
         resourceDetails.setScope(List.of(SERVICE_INNER_SCOPE));
         resourceDetails.setAccessTokenUri(
                 oAuth2ProtectedResourceDetails.getAccessTokenUri());
+
+        final var loadBalancerInterceptor =
+                new LoadBalancerInterceptor(loadBalancerClient, requestFactory);
 
         final var oauth2RestTemplate =
                 new OAuth2RestTemplate(resourceDetails);
